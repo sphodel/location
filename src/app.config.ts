@@ -8,7 +8,8 @@ export default defineAppConfig({
     "pages/my/collection/index",
     "pages/index/search/index",
     "pages/my/friends/index",
-    "pages/index/route/index"
+    "pages/index/route/index",
+    "pages/index/detail/index"
   ],
   window: {
     backgroundTextStyle: "light",
@@ -17,8 +18,7 @@ export default defineAppConfig({
     navigationBarTextStyle: "black",
   },
   requiredPrivateInfos:[
-    "onLocationChange",
-    "startLocationUpdate"
+    "getLocation",
   ]
   ,
   tabBar: {

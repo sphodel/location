@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Taro from "@tarojs/taro";
 import { Button, Input, Map, View } from "@tarojs/components";
 import { AtIcon } from "taro-ui";
@@ -14,22 +14,9 @@ export default function Index() {
     longitude: 113.26436,
   });
   const [scale, setScale] = useState(16);
-  Taro.startLocationUpdate({
-    success: () => {
-      Taro.onLocationChange((data) => {
-        const currentTime = new Date().getTime();
-        const oldLocation = Taro.getStorageSync("oldLocation");
-        const oldTime = Taro.getStorageSync("oldTime");
-        const newLocation = data.latitude + "" + data.longitude;
-        setMyLocation({ longitude: data.longitude, latitude: data.latitude });
-        if (oldLocation != newLocation && currentTime - oldTime > 5000) {
-          Taro.setStorageSync("oldLocation", newLocation);
-          Taro.setStorageSync("oldTime", currentTime);
-        }
-      });
-    },
-    fail: (err) => {
-      console.log(err);
+  void Taro.getLocation({
+    success: (data) => {
+      setMyLocation({ longitude: data.longitude, latitude: data.latitude });
     },
   });
 

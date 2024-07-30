@@ -59,6 +59,8 @@
     "@tarojs/shared": "3.6.33",
     "@tarojs/taro": "3.6.19",
     "apollo-boost": "^0.4.9",
+    "axios": "^1.7.2",
+    "express": "^4.19.2",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "taro-ui": "^3.0.0-alpha.2"

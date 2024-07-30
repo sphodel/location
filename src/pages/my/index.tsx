@@ -28,17 +28,29 @@ const My = () => {
   const handleLogin = () => {
     if (Taro.getStorageSync("openid") == "") {
       Taro.login().then((res) => {
-        void client.mutate({
-          mutation: INSERT_USER,
-          variables: {
-            openid: res.code,
-            avatar:
-              "https://thirdwx.qlogo.cn/mmopen/vi_32/POgEwh4mIHO4nibH0KlMECNjjGxQUq24ZEaGT4poC6icRiccVGKSyXwibcPq4BWmiaIGuG1icwxaQX6grC9VemZoJ8rg/132",
-            name:"微信用户"
-          },
-        });
-        Taro.setStorageSync("openid", res.code);
-        navigateToPage("edit");
+        if(res.code){
+          const appid='wxa3cb633605ee7826'
+          const secret='f63d8607fc61c49ba26a6c98cfb1b452'
+          Taro.request({
+            url: `https://api.weixin.qq.com/sns/jscode2session?appid=${appid}&secret=${secret}&js_code=` + res.code + "&grant_type=authorization_code",
+            header: {
+              'content-type': 'application/json'
+            },
+            success(res1) {
+              void client.mutate({
+                mutation: INSERT_USER,
+                variables: {
+                  openid: res1.data.openid,
+                  avatar:
+                    "https://thirdwx.qlogo.cn/mmopen/vi_32/POgEwh4mIHO4nibH0KlMECNjjGxQUq24ZEaGT4poC6icRiccVGKSyXwibcPq4BWmiaIGuG1icwxaQX6grC9VemZoJ8rg/132",
+                  name:"微信用户"
+                },
+              });
+              Taro.setStorageSync('openid',res1.data.openid)
+              navigateToPage("edit");
+            }
+          })
+        }
       });
     } else {
       navigateToPage("edit");
