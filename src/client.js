@@ -2,7 +2,7 @@ import Taro from '@tarojs/taro'
 import ApolloClient from 'apollo-boost';
 
 const client = new ApolloClient({
-  uri: 'http://116.198.241.106:8080/v1/graphql',
+  uri: 'https://local-share-gql.lighthx.xyz/v1/graphql',
   fetch: (url, options) => Taro.request({
     url,
     method: options.method,

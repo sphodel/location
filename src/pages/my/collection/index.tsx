@@ -1,16 +1,9 @@
-import { Button, View } from "@tarojs/components";
-import Taro from "@tarojs/taro";
+import { View } from "@tarojs/components";
 
 const Collection=()=>{
   return(
     <View>
-      <Button onClick={()=>{
-        void Taro.navigateTo({
-          url:"/pages/index/route/index?route=walk"
-        })
-      }}>
-        test
-      </Button>
+
     </View>
   )
 }

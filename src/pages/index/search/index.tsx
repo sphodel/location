@@ -1,19 +1,19 @@
-import { Button, Input, View } from "@tarojs/components";
-import { AtIcon } from "taro-ui";
+import { View } from "@tarojs/components";
+import { AtSearchBar } from "taro-ui";
 import { useState } from "react";
+import "../index.less";
 
 const Search = () => {
   const [search, setSearch] = useState("");
   return (
-    <View className='searchDom'>
-      <AtIcon value='search'></AtIcon>
-      <Input
-        value={search}
-        onInput={(e) => setSearch(e.detail.value)}
-        className='inputDom'
-        placeholder='搜索地点'
-      />
-      <Button style={{background:"#24578a"}}>搜索</Button>
+    <View>
+      <View className='searchDom'>
+        <AtSearchBar
+          showActionButton
+          value={search}
+          onChange={(e)=>{setSearch(e)}}
+        />
+    </View>
     </View>
   );
 };

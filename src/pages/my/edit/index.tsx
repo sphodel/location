@@ -33,7 +33,7 @@ const Edit = () => {
         </View>
       </Button>
       <View className='avatar-item'>
-        <Text style={{ paddingLeft: "6px" }}>昵称</Text>
+        <Text style={{ paddingLeft: "16px" }}>昵称</Text>
         <View className='item-right'>
           <Input
             type='nickname'
@@ -46,6 +46,12 @@ const Edit = () => {
           <AtIcon value='chevron-right'></AtIcon>
         </View>
       </View>
+      <Button onClick={()=>{
+        Taro.removeStorageSync('openid')
+      }}
+      >
+        删除记录
+      </Button>
     </View>
   );
 };

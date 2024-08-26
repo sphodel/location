@@ -25,14 +25,17 @@ const My = () => {
       url: `/pages/my/${url}/index`,
     });
   };
+  console.log(Taro.getStorageSync('openid'))
   const handleLogin = () => {
     if (Taro.getStorageSync("openid") == "") {
       Taro.login().then((res) => {
         if(res.code){
-          const appid='wxa3cb633605ee7826'
-          const secret='f63d8607fc61c49ba26a6c98cfb1b452'
           Taro.request({
-            url: `https://api.weixin.qq.com/sns/jscode2session?appid=${appid}&secret=${secret}&js_code=` + res.code + "&grant_type=authorization_code",
+            url: "https://local-share-gql.lighthx.xyz/api/login",
+            method:"POST",
+            data:{
+              code:res.code
+            },
             header: {
               'content-type': 'application/json'
             },
@@ -48,6 +51,8 @@ const My = () => {
               });
               Taro.setStorageSync('openid',res1.data.openid)
               navigateToPage("edit");
+            },fail(res1){
+              console.log(123)
             }
           })
         }

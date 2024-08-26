@@ -5,7 +5,6 @@ import { gql } from "@apollo/client";
 import './index.less'
 import amapFile from '../../../libs/amap-wx.130'
 import client from "../../../client";
-import { AtIcon } from "taro-ui";
 
 const QUERY_CONTACT_LOCATION=gql(`query queryContactLocation($user_id: String!, $contact_user_id: String!) {
   location(where: {user_id: {_eq: $user_id}, contact_user_id: {_eq: $contact_user_id}}) {
@@ -31,6 +30,8 @@ const Route = () => {
   const [distance,setDistance]=useState("")
   const [myLocation,setMyLocation]=useState<locationType>({latitude:39.90816,longitude:116.434446})
   const [contactLocation,setContactLocation]=useState<locationType>({latitude:38.90816,longitude:116.434446})
+  const [currentRoute,setCurrentRoute]=useState()
+  const [current,setCurrent]=useState("")
   const [marker,setMarker]=useState([{
     id: 0,
     latitude: myLocation.latitude,
@@ -49,8 +50,14 @@ const Route = () => {
       url:`/pages/index/route/index?route=${routeName}`
     })
   }
+  const Error=()=>{
+    console.log("error")
+  }
   const myAmapFun=new amapFile.AMapWX({key:'51fbada27981efc5fdcd12e44e7df51e'})
   useEffect(() => {
+    const page=Taro.getCurrentPages()
+    const currentPage=page[page.length-1]
+    setCurrentRoute(currentPage.options.route)
     const interval=setInterval(()=>{
       const user_id=Taro.getStorageSync('openid')
       const contactId=Taro.getStorageSync('contactId')
@@ -81,19 +88,21 @@ const Route = () => {
       })
       client.query({
         query: QUERY_CONTACT_LOCATION,
-        variables: { user_id: user_id, contact_user_id: contactId }
+        variables: { user_id: user_id, contact_user_id: contactId },
+        fetchPolicy: 'network-only'
       }).then(r =>{
         setContactLocation({longitude:r.data.location[0].contact_longitude,latitude:r.data.location[0].contact_latitude})
       }
         )
       myAmapFun.getDrivingRoute({
         origin: `${myLocation.longitude},${myLocation.latitude}`,
-        destination: '116.434446,39.90816',
+        destination: `${contactLocation.longitude},${contactLocation.latitude}`,
         success: function(data){
           const points = [];
           const route=[]
           if (data.paths && data.paths[0] && data.paths[0].steps) {
             const steps = data.paths[0].steps;
+            setCurrent(steps[0].instruction)
             for( let i = 0; i < steps.length; i++) {
               const poLen = steps[i].polyline.split(";");
               route.push(steps[i].instruction)
@@ -116,26 +125,22 @@ const Route = () => {
           }
         },
       })
-    },5000)
+    },3000)
     return () => clearInterval(interval);
-  }, [myAmapFun, myLocation.latitude, myLocation.longitude]);
-  const Move=()=>{
-    const mapCtx=Taro.createMapContext('myMap')
-    void mapCtx.moveToLocation({latitude:myLocation.latitude,longitude:myLocation.longitude})
-  }
+  }, [contactLocation.latitude, contactLocation.longitude, myAmapFun, myLocation.latitude, myLocation.longitude]);
   return (
     <View>
       <View class='flex-style'>
-        <Button class='flex-item active' onClick={()=>navigateToRoute('car')}>
-          驾车
-        </Button>
-        <Button class='flex-item' onClick={()=>navigateToRoute('walk')}>
+        <Button className={`flex-item ${currentRoute === 'walk' ? 'active' : ''}`} onClick={()=>navigateToRoute('walk')}>
           步行
         </Button>
-        <Button class='flex-item' onClick={()=>navigateToRoute('bus')}>
+        <Button className={`flex-item ${currentRoute === 'car' ? 'active' : ''}`} onClick={()=>navigateToRoute('car')}>
+          驾车
+        </Button>
+        <Button className={`flex-item ${currentRoute === 'bus' ? 'active' : ''}`} onClick={()=>navigateToRoute('bus')}>
           公交
         </Button>
-        <Button class='flex-item' onClick={()=>navigateToRoute('bike')}>
+        <Button className={`flex-item ${currentRoute === 'bike' ? 'active' : ''}`} onClick={()=>navigateToRoute('bike')}>
           骑行
         </Button>
       </View>
@@ -149,14 +154,12 @@ const Route = () => {
           polyline={polyLine}
           showCompass
           showLocation
+          onError={Error}
         />
       </View>
-      <Button onClick={Move}>
-        <AtIcon value='reload'></AtIcon>
-      </Button>
       <View class='text_box'>
-        <View class='text'>{distance}</View>
-        <View class='text'>cost</View>
+        <View class='text'>{distance/1000}公里</View>
+        <View>{current}</View>
         <View class='detail_button' onClick={()=>Taro.navigateTo({
           url:"/pages/index/detail/index"
         })}

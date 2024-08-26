@@ -5,7 +5,7 @@ const app = express();
 app.use(express.json());
 
 const appId = 'wxa3cb633605ee7826';
-const appSecret = '';
+const appSecret = 'f63d8607fc61c49ba26a6c98cfb1b452';
 
 app.post('/api/login', async (req, res) => {
   const { code } = req.body;
@@ -36,3 +36,4 @@ app.post('/api/login', async (req, res) => {
 app.listen(3000, () => {
   console.log('Server running on port 3000');
 });
+
