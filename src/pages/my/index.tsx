@@ -31,13 +31,10 @@ const My = () => {
       Taro.login().then((res) => {
         if(res.code){
           Taro.request({
-            url: "https://local-share-gql.lighthx.xyz/api/login",
+            url: "https://local-share-gql.lighthx.xyz/api/getOpenId",
             method:"POST",
             data:{
               code:res.code
-            },
-            header: {
-              'content-type': 'application/json'
             },
             success(res1) {
               void client.mutate({
@@ -52,7 +49,7 @@ const My = () => {
               Taro.setStorageSync('openid',res1.data.openid)
               navigateToPage("edit");
             },fail(res1){
-              console.log(123)
+              console.log(res1)
             }
           })
         }

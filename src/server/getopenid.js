@@ -1,39 +1,41 @@
-import express from 'express'
-import axios from "axios";
+const express = require('express');
+const request = require('request');
+const bodyParser = require('body-parser');
 
 const app = express();
-app.use(express.json());
+const PORT = 3000;
 
 const appId = 'wxa3cb633605ee7826';
 const appSecret = 'f63d8607fc61c49ba26a6c98cfb1b452';
 
-app.post('/api/login', async (req, res) => {
-  const { code } = req.body;
+app.use(bodyParser.json());
+app.post('/api/getOpenId', (req, res) => {
+  const code = req.body.code;
 
-  try {
-    const response = await axios.get(`https://api.weixin.qq.com/sns/jscode2session`, {
-      params: {
-        appid: appId,
-        secret: appSecret,
-        js_code: code,
-        grant_type: 'authorization_code'
-      }
-    });
-
-    const { openid } = response.data;
-
-    if (openid) {
-      res.send({ openid });
-    } else {
-      res.status(400).send({ error: 'Failed to get openid' });
-    }
-  } catch (error) {
-    console.error('Error getting openid:', error);
-    res.status(500).send({ error: 'Internal Server Error' });
+  if (!code) {
+    return res.status(400).json({ error: 'Code is required' });
   }
+
+  const url = `https://api.weixin.qq.com/sns/jscode2session?appid=${appId}&secret=${appSecret}&js_code=${code}&grant_type=authorization_code`;
+
+  request(url, (error, response, body) => {
+    if (error) {
+      return res.status(500).json({ error: 'Request failed', details: error });
+    }
+
+    const data = JSON.parse(body);
+
+    if (data.errcode) {
+      return res.status(400).json({ error: 'Error from WeChat API', details: data });
+    }
+
+    res.json({
+      openid: data.openid
+    });
+  });
 });
 
-app.listen(3000, () => {
-  console.log('Server running on port 3000');
+app.listen(PORT,  () => {
+  console.log(`Server running on port ${PORT}`);
 });
 
