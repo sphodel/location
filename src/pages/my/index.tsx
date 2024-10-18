@@ -1,7 +1,8 @@
 import { useState } from "react";
-import Taro from "@tarojs/taro";
+import Taro, { useDidShow } from "@tarojs/taro";
 import { AtList, AtListItem } from "taro-ui";
-import { View } from "@tarojs/components";
+import { Button, View } from "@tarojs/components";
+import ShortUniqueId from "short-unique-id";
 import { gql } from "@apollo/client";
 import "./index.less";
 import client from "../../client";
@@ -13,74 +14,60 @@ const INSERT_USER =
   }
 }
 `);
-
+const QUERY_USER_EXIST = gql(`query queryUserExist($openid: String!) {
+  users(where: {openid: {_eq: $openid}}) {
+    openid
+  }
+}`);
 const My = () => {
-  const [avatarUrl] = useState(
+  const [avatarUrl, setAvatarUrl] = useState(
     Taro.getStorageSync("avatarUrl") ||
       "https://thirdwx.qlogo.cn/mmopen/vi_32/POgEwh4mIHO4nibH0KlMECNjjGxQUq24ZEaGT4poC6icRiccVGKSyXwibcPq4BWmiaIGuG1icwxaQX6grC9VemZoJ8rg/132"
   );
-  const [name] = useState(Taro.getStorageSync("nickName") || "微信用户");
+  const [name, setName] = useState("登录");
+  useDidShow(() => {
+    setName(Taro.getStorageSync("nickName") || "登录");
+    setAvatarUrl(
+      Taro.getStorageSync("avatarUrl") ||
+        "https://thirdwx.qlogo.cn/mmopen/vi_32/POgEwh4mIHO4nibH0KlMECNjjGxQUq24ZEaGT4poC6icRiccVGKSyXwibcPq4BWmiaIGuG1icwxaQX6grC9VemZoJ8rg/132"
+    );
+  });
   const navigateToPage = (url: string) => {
     void Taro.navigateTo({
       url: `/pages/my/${url}/index`,
     });
   };
-  console.log(Taro.getStorageSync('openid'))
   const handleLogin = () => {
-    if (Taro.getStorageSync("openid") == "") {
-      Taro.login().then((res) => {
-        if(res.code){
-          Taro.request({
-            url: "https://local-share-gql.lighthx.xyz/api/getOpenId",
-            method:"POST",
-            data:{
-              code:res.code
+    client
+      .query({
+        query: QUERY_USER_EXIST,
+        variables: { openid: Taro.getStorageSync("openid") },
+      })
+      .then((r) => {
+        if (!r.data.users.length) {
+          const uid = new ShortUniqueId({ length: 10 });
+
+          void client.mutate({
+            mutation: INSERT_USER,
+            variables: {
+              openid: Taro.getStorageSync("openid"),
+              name: `微信用户${uid.rnd()}`,
+              avatar: avatarUrl,
             },
-            success(res1) {
-              void client.mutate({
-                mutation: INSERT_USER,
-                variables: {
-                  openid: res1.data.openid,
-                  avatar:
-                    "https://thirdwx.qlogo.cn/mmopen/vi_32/POgEwh4mIHO4nibH0KlMECNjjGxQUq24ZEaGT4poC6icRiccVGKSyXwibcPq4BWmiaIGuG1icwxaQX6grC9VemZoJ8rg/132",
-                  name:"微信用户"
-                },
-              });
-              Taro.setStorageSync('openid',res1.data.openid)
-              navigateToPage("edit");
-            },fail(res1){
-              console.log(res1)
-            }
-          })
+          });
         }
+        navigateToPage("edit");
+        Taro.setStorageSync("login", true);
       });
-    } else {
-      navigateToPage("edit");
-    }
   };
   return (
     <View className='box'>
       <AtList>
-        <AtListItem
-          title={name}
-          thumb={avatarUrl}
-          className='user'
-          onClick={handleLogin}
-        />
+        <Button onClick={handleLogin}>
+          <AtListItem title={name} thumb={avatarUrl} className='user' />
+        </Button>
       </AtList>
       <AtList>
-        <AtListItem
-          title='我的收藏'
-          arrow='right'
-          iconInfo={{ size: 25, color: "#78A4FA", value: "star" }}
-          onClick={() => navigateToPage("collection")}
-        />
-        <AtListItem
-          title='历史记录'
-          arrow='right'
-          iconInfo={{ size: 25, color: "#FF4949", value: "calendar" }}
-          onClick={() => navigateToPage("use")}
-        />
         <AtListItem
           title='我的反馈'
           arrow='right'

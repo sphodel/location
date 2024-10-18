@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import Taro from "@tarojs/taro";
-import { Button, Input, Map, View } from "@tarojs/components";
+import { useState } from "react";
+import Taro, { useDidShow, useLoad } from "@tarojs/taro";
+import { Button, Map, View } from "@tarojs/components";
 import { AtIcon, AtModal, AtSearchBar } from "taro-ui";
 import { gql } from "@apollo/client";
 import "./index.less";
@@ -14,17 +14,24 @@ const QUERY_INVITEE = gql(`
   }
 }
 `);
-const UPDATE_INVITATION=gql(`mutation updateInvitation($inviter: String!, $invitee: String!) {
+const UPDATE_INVITATION =
+  gql(`mutation updateInvitation($inviter: String!, $invitee: String!) {
   update_invitations(where: {inviter: {_eq: $inviter}, invitee: {_eq: $invitee}}, _set: {status: "success"}) {
     returning {
       id
     }
   }
 }
-`)
+`);
 interface locationType {
   longitude: number;
   latitude: number;
+}
+interface markerType {
+  id: number;
+  latitude: number;
+  longitude: number;
+  iconPath: string;
 }
 export default function Index() {
   const [myLocation, setMyLocation] = useState<locationType>({
@@ -33,53 +40,84 @@ export default function Index() {
   });
   const [scale, setScale] = useState(16);
   const [showModal, setShowModal] = useState(false);
-  const user_id=Taro.getStorageSync('openid')
+  const user_id = Taro.getStorageSync("openid");
+  const [marker, setMarker] = useState<markerType[]>([]);
   void Taro.getLocation({
     success: (data) => {
       setMyLocation({ longitude: data.longitude, latitude: data.latitude });
     },
   });
-
   const Error = () => {
     console.log("error");
   };
   const Move = () => {
     const mapCtx = Taro.createMapContext("myMap");
-    void mapCtx.moveToLocation({
-      latitude: myLocation.latitude,
-      longitude: myLocation.longitude,
-    });
+    void Taro.getLocation({
+      type:"gcj02",
+      success: (data) => {
+        void mapCtx.moveToLocation({
+          latitude: data.latitude,
+          longitude: data.longitude,
+        });
+      },
+    })
   };
   const handleCancel = () => {
     setShowModal(false);
   };
-  const handleConfirm=()=>{
-    const contactId=Taro.getStorageSync('contactId')
-    void client.mutate({
-      mutation:UPDATE_INVITATION,
-      variables:{inviter:contactId,invitee:user_id}
-    }).then(()=>{
-      void Taro.navigateTo({
-        url:'/pages/index/route/index?route=walk'
+  const handleConfirm = () => {
+    const contactId = Taro.getStorageSync("contactId");
+    Taro.setStorageSync("ifShare", true);
+    void client
+      .mutate({
+        mutation: UPDATE_INVITATION,
+        variables: { inviter: contactId, invitee: user_id },
       })
-    })
-  }
-  useEffect(() => {
-    const fetchData=async ()=>{
-      await client.query({
-        query:QUERY_INVITEE,
-        fetchPolicy: 'network-only'
-      }).then((res)=>{
-        if(res.data.invitations.length){
-          Taro.setStorageSync('contactId',res.data.invitations[0].inviter)
-          if(res.data.invitations[0].invitee==user_id){
-            setShowModal(true)
-          }
-        }
-      })
+      .then(() => {
+        setShowModal(false);
+        void Taro.navigateTo({
+          url: "/pages/index/route/index?route=walk",
+        });
+      });
+  };
+  useLoad(() => {
+    const newLocation = Taro.getStorageSync("searchLocation");
+    if (newLocation) {
+      const mapCtx = Taro.createMapContext("myMap");
+      void mapCtx.moveToLocation({
+        latitude: newLocation.latitude,
+        longitude: newLocation.longitude,
+      });
+      setMarker((prev) => [
+        ...prev,
+        {
+          id: Date.now(),
+          longitude: newLocation.longitude,
+          latitude: newLocation.latitude,
+          iconPath: "",
+        },
+      ]);
+      Taro.removeStorageSync("searchLocation"); // 移除存储
     }
-    void fetchData()
-  }, [user_id]);
+  });
+  useDidShow(() => {
+    const fetchData = async () => {
+      await client
+        .query({
+          query: QUERY_INVITEE,
+          fetchPolicy: "network-only",
+        })
+        .then((res) => {
+          if (res.data.invitations.length) {
+            Taro.setStorageSync("contactId", res.data.invitations[0].inviter);
+            if (res.data.invitations[0].invitee == user_id) {
+              setShowModal(true);
+            }
+          }
+        });
+    };
+    void fetchData();
+  });
   return (
     <View className='homeDom'>
       <AtModal
@@ -94,6 +132,7 @@ export default function Index() {
         id='myMap'
         class='mapDom'
         scale={scale}
+        markers={marker}
         showLocation
         showCompass
         latitude={myLocation.latitude}
@@ -134,10 +173,17 @@ export default function Index() {
             </Button>
           </View>
         </View>
-        <View style={{width:"90%",margin:"auto",pointerEvents:"all"}}
+        <View
+          style={{
+            width: "90%",
+            margin: "auto",
+            pointerEvents: "all",
+            background: "transparent",
+            marginBottom: "10px",
+          }}
           onClick={() => Taro.navigateTo({ url: "/pages/index/search/index" })}
         >
-          <AtSearchBar />
+          <AtSearchBar disabled />
         </View>
       </View>
     </View>

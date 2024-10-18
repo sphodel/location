@@ -9,9 +9,9 @@ const appId = 'wxa3cb633605ee7826';
 const appSecret = 'f63d8607fc61c49ba26a6c98cfb1b452';
 
 app.use(bodyParser.json());
-app.post('/api/getOpenId', (req, res) => {
-  const code = req.body.code;
-
+app.get('/api/getOpenId', (req, res) => {
+  const code = req.query.code;
+  console.log(req.query)
   if (!code) {
     return res.status(400).json({ error: 'Code is required' });
   }

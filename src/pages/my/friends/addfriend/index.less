@@ -1,35 +1,17 @@
-.friends-page {
+.add-friend-page {
   padding: 20px;
   background-color: #f5f5f5;
   min-height: 100vh;
 }
 
-.header {
+.search-container {
   margin-bottom: 20px;
-
-  .title {
-    font-size: 24px;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 15px;
-  }
-
-  .header-buttons {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 20px;
-
-    .at-button {
-      width: 48%;  // 略小于50%以确保两个按钮之间有间隔
-    }
-  }
 }
 
-.friends-list {
+.friend-list {
   .friend-item {
     display: flex;
     align-items: center;
-    width: 70%;
     justify-content: space-between;
     padding: 15px;
     margin-bottom: 10px;
@@ -40,11 +22,10 @@
     .friend-info {
       display: flex;
       align-items: center;
-      flex: 1;
 
       .nickname {
         margin-left: 15px;
-        font-size: 30px;
+        font-size: 32px;
         color: #333;
       }
     }
@@ -52,8 +33,26 @@
     .action-button {
       .at-button {
         margin: 0;
-        padding: 0 15px;
+      }
+
+      .status-text {
+        font-size: 32px;
+
+        &.added {
+          color: #6190E8;
+        }
+
+        &.sent {
+          color: #FFA500;
+        }
       }
     }
   }
+}
+
+.no-result {
+  text-align: center;
+  color: #999;
+  margin-top: 20px;
+  font-size: 24px;
 }

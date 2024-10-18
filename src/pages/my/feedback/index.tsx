@@ -21,15 +21,6 @@ const Feedback = () => {
             />
           </View>
         </View>
-        <View class='phone'>
-          <Input
-            name='contact'
-            value={contact}
-            placeholder-class='placeholder'
-            placeholder='请留下您的手机号或邮箱，方便我们及时回复'
-            onInput={(e)=>setContact(e.detail.value)}
-          />
-        </View>
         <Button
           formType='submit'
           hover-class='button_active'

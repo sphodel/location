@@ -9,13 +9,17 @@ export default defineAppConfig({
     "pages/index/search/index",
     "pages/my/friends/index",
     "pages/index/route/index",
-    "pages/index/detail/index"
+    "pages/index/detail/index",
+    "pages/my/friends/addfriend/index",
+    "pages/my/friends/requests/index",
+    "pages/index/search/searchContent/index"
   ],
   window: {
     backgroundTextStyle: "light",
     navigationBarBackgroundColor: "#fff",
     navigationBarTitleText: "WeChat",
     navigationBarTextStyle: "black",
+    enablePullDownRefresh:true
   },
   permission:{
     "scope.userLocation": {

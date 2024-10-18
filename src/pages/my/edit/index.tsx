@@ -1,9 +1,27 @@
 import { View, Text, Input, Button } from "@tarojs/components";
 import Taro from "@tarojs/taro";
-import { useEffect, useState } from "react";
-import { AtAvatar, AtIcon } from "taro-ui";
+import { useState } from "react";
+import { AtAvatar, AtIcon, AtMessage } from "taro-ui";
+import { gql } from "@apollo/client";
+import client from "../../../client";
 import "./index.less";
 
+const UPDATE_NAME=gql(`mutation updateInfo($openid: String!, $name: String!) {
+  update_users(where: {openid: {_eq: $openid}}, _set: {name: $name}) {
+    returning {
+      openid
+    }
+  }
+}
+`)
+const UPDATE_AVATAR=gql(`mutation updateAVA($openid: String!, $avatar: String!) {
+  update_users(where: {openid: {_eq: $openid}}, _set: {avatar: $avatar}) {
+    returning {
+      openid
+    }
+  }
+}
+`)
 const Edit = () => {
   const [avatarUrl, setAvatarUrl] = useState(
     Taro.getStorageSync("avatarUrl") ||
@@ -13,17 +31,22 @@ const Edit = () => {
     Taro.getStorageSync("nickName") || "微信用户"
   );
   const onChooseAvatar = (e: { detail: { avatarUrl: string } }) => {
-    Taro.setStorageSync("avatarUrl", e.detail.avatarUrl);
-    setAvatarUrl(e.detail.avatarUrl);
+    const fs=Taro.getFileSystemManager()
+    const base64Str=fs.readFileSync(e.detail.avatarUrl,'base64')
+    const imgBase64=`data:image/png;base64,${base64Str}`
+    Taro.setStorageSync('avatarUrl',imgBase64)
+    setAvatarUrl(imgBase64);
+    void client.mutate({
+      mutation:UPDATE_AVATAR,
+      variables:{openid:Taro.getStorageSync('openid'),avatar:imgBase64}
+    })
   };
-  useEffect(() => {
-    Taro.setStorageSync("nickName", nickName);
-  }, [nickName]);
   return (
     <View className='container'>
+      <AtMessage />
       <Button
         className='avatar-item'
-        onClick={onChooseAvatar}
+        onChooseAvatar={onChooseAvatar}
         open-type='chooseAvatar'
       >
         <Text style={{ paddingLeft: "6px" }}>头像</Text>
@@ -37,21 +60,20 @@ const Edit = () => {
         <View className='item-right'>
           <Input
             type='nickname'
-            style={{ width: "80px" }}
+            style={{ width: "80px", textAlign: "right",marginRight:"16px" }}
             value={nickName}
             onInput={(e) => {
+              void client.mutate({
+                mutation:UPDATE_NAME,
+                variables:{openid:Taro.getStorageSync('openid'),name:e.detail.value}
+              })
+              Taro.setStorageSync('nickName',e.detail.value)
               setNickName(e.detail.value);
             }}
           />
           <AtIcon value='chevron-right'></AtIcon>
         </View>
       </View>
-      <Button onClick={()=>{
-        Taro.removeStorageSync('openid')
-      }}
-      >
-        删除记录
-      </Button>
     </View>
   );
 };

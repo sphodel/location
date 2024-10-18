@@ -26,23 +26,56 @@
   height: 100%;
 }
 .text_box {
+  display: flex;
+  justify-content: flex-end;
   position: absolute;
-  height: 90px;
+  width: 100vw;
+  padding: 10px;
+  background-color:transparent;
+  height: 30%;
   bottom: 0;
-  left: 0;
-  right: 0;
+  z-index: 20;
 }
-.text_box .text {
-  margin: 15px;
+.text_view{
+  bottom: 20px;
+  width: 100%;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  transition: transform 0.3s;
+}
+
+.text {
+  font-size: 36px;
+  color: #333;
+  padding-bottom: 20px;
+}
+
+.end_button {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: red;
+  border-radius: 9999px;
+  color:white;
+  width: 80%;
+}
+.at-modal__content{
+  display: flex;
+  text-align: center;
+  align-items: center;
+  font-size: 36px;
 }
 .detail_button {
   position: absolute;
-  bottom: 30px;
-  right: 10px;
-  padding: 3px 5px;
-  color: #fff;
-  background: #0091ff;
-  width: 50px;
+  right:20px;
+  top:0;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background-color: #007aff;
+  color: white;
+  border-radius: 4px;
   text-align: center;
-  border-radius: 5px;
+  cursor: pointer;
 }
